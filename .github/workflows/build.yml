@@ -23,11 +23,14 @@ jobs:
       - name: Build the Xcode Project
         run: |
           cd target_app
-          
           XCODEPROJ=$(ls -1d *.xcodeproj | head -n 1)
+          
           SCHEME_NAME=$(basename "$XCODEPROJ" .xcodeproj)
           
+          SANITIZED_NAME=$(echo "$SCHEME_NAME" | tr -cd 'a-zA-Z0-9')
+          
           echo "Building project: $XCODEPROJ with scheme: $SCHEME_NAME"
+          echo "Using sanitized App Name and Bundle ID: $SANITIZED_NAME"
           
           xcodebuild clean archive \
             -project "$XCODEPROJ" \
@@ -38,7 +41,9 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
-            ONLY_ACTIVE_ARCH=NO
+            ONLY_ACTIVE_ARCH=NO \
+            PRODUCT_NAME="$SANITIZED_NAME" \
+            PRODUCT_BUNDLE_IDENTIFIER="com.github.$SANITIZED_NAME"
             
       - name: Package into IPA
         run: |
@@ -49,6 +54,6 @@ jobs:
       - name: Upload IPA Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Unsigned-App-IPA
+          name: app
           path: app.ipa
-          retention-days: 7
+          retention-days: 90
