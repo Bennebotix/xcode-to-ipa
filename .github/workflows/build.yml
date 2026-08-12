@@ -1,4 +1,4 @@
-name: Build IPA
+name: Build IPA from URL
 
 on:
   push:
@@ -14,11 +14,16 @@ jobs:
       - name: Checkout this repository
         uses: actions/checkout@v4
 
+      - name: Select Latest Xcode
+        run: |
+          LATEST_XCODE=$(ls -1d /Applications/Xcode*.app | sort -V | tail -n 1)
+          echo "Switching active developer directory to: $LATEST_XCODE"
+          sudo xcode-select -s "$LATEST_XCODE/Contents/Developer"
+
       - name: Read Git URL and Clone Target Repository
         run: |
           TARGET_URL=$(cat repo_url.txt | tr -d '\n' | tr -d '\r')
           echo "Cloning $TARGET_URL..."
-          
           git clone "$TARGET_URL" target_app
           
       - name: Build the Xcode Project
@@ -26,7 +31,6 @@ jobs:
           cd target_app
           
           XCODEPROJ=$(ls -1d *.xcodeproj | head -n 1)
-          
           SCHEME_NAME=$(basename "$XCODEPROJ" .xcodeproj)
           
           echo "Building project: $XCODEPROJ with scheme: $SCHEME_NAME"
@@ -45,9 +49,7 @@ jobs:
       - name: Package into IPA
         run: |
           mkdir -p Payload
-          
           cp -r build/App.xcarchive/Products/Applications/*.app Payload/
-          
           zip -qr app.ipa Payload
           
       - name: Upload IPA Artifact
