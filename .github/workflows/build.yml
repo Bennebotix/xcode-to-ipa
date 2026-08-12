@@ -8,16 +8,11 @@ on:
 jobs:
   build-ipa:
     name: Clone and Build IPA
-    runs-on: macos-latest
+    runs-on: xcode-27
 
     steps:
       - name: Checkout this repository
         uses: actions/checkout@v4
-
-      - name: Set up Xcode Beta
-        uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: 'latest-beta'
 
       - name: Read Git URL and Clone Target Repository
         run: |
